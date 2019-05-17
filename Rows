@@ -1,0 +1,76 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+double sh (double a)
+{
+   return (exp(a) - exp(-a))/2;
+}
+double factorial (int a)
+{
+   if ((a == 0) || (a == 1)) 
+     return 1;
+   return (a*factorial(a-1));
+}
+double shinus (double x, int k)
+{
+   if (k == 0)
+    return x;
+   if (k == 1)
+    return (x + pow(x,3)/6);
+   double q = pow(x,2)/((2*k)*(2*k+1));
+   return (shinus(x, k-1)*(q+1)-shinus(x,k-2)*q);
+}
+double sinus (double x, int k)
+{
+   if (k == 0)
+    return x;
+   if (k == 1)
+    return (x - pow(x,3)/6);
+   double q = -pow(x,2)/((2*k)*(2*k+1));
+   return (sinus(x, k-1)*(q+1)-sinus(x,k-2)*q);
+}
+double root (double a, int k)
+{
+   double bla = 0.5*(1.045+ a/1.045); // 1.045 - чуть больше sqrt(1,09), достигаемого при максимальном х 
+   for (int i = 0; i < k-1; i ++)
+      bla = 0.5*(bla + a/bla);
+   return bla;
+}
+int main() {
+double epsilon = pow(10, -4);
+for (double x = 0.2; x <= 0.3; x+=0.01)
+{
+    double otvetFunc = sh((sqrt(1+pow(x, 2))/(1-x)))/sin(pow(x, 2) + 0.4);
+    int k = 1; // для аргумента шинуса 
+    double a = 1+pow(x, 2);
+    double bla = 0.5*(1.045+ a/1.045);
+    while (abs((0.5*bla-(0.5*a)/bla)/(1-x)) > epsilon/(7.77*3))
+    {
+       k++;
+       bla = 0.5*(bla + a/bla);
+    }
+    double u = root(1+pow(x, 2), k) /(1-x);
+    int p = 0; // для синуса 
+    bla = pow(x, 2) + 0.4;
+   // while ( pow((pow(x, 2) + 0.4), 2*p + 1)/factorial(2*p + 1) > epsilon/(12.81*3))
+     // p++;
+     while (bla > epsilon/(12.81*3)) 
+      {
+          bla*=(pow((pow(x, 2) + 0.4),2)/6);
+          p++;
+      }
+    double v = sinus(pow(x, 2) + 0.4, p-2);
+    int t = 0; // для шинуса (для всей функции)
+    bla = u;
+    while (bla / v > epsilon/3)
+      {
+          bla*=(pow(u,2)/6);
+          t++;
+      }
+    double otvetRow = shinus(u, t-2)/v;
+    cout << otvetFunc << endl;
+    cout << otvetRow << endl;
+    cout << abs(otvetRow - otvetFunc) << endl;
+}
+    return 0;
+}
