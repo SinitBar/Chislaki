@@ -1,0 +1,185 @@
+#include <iostream>
+#include <iomanip>
+#include <cmath>
+using namespace std;
+double norm(double *x, double*b, int size)
+{
+   double* copy = new double [size];
+   for (int i = 0; i < size; i++) 
+      copy[i]=x[i]-b[i];
+    double otvet = 0;
+   for (int i = 0; i < size; i++) 
+   {
+       otvet+=copy[i]*copy[i];
+   }
+   return sqrt(otvet);
+}
+void method (bool IsBad, bool gauss, int size)
+{
+    if(gauss)
+    cout << "Gauss ";
+else
+    cout << "Zeidel ";
+if(IsBad)
+    cout << "with bad matrix" << endl;
+else
+    cout << "with normal matrix" << endl;
+double epsilon = 0.0001, mu = 0.0001;
+int N = 15; //size max=23 
+double ** A = new double* [size];
+double ** B = new double* [size];
+for (int j = 0; j < size; j ++)
+    {
+        A[j] = new double [size];
+        B[j] = new double [size];
+    }
+double* b = new double [size];
+double* x = new double [size];
+double *c = new double [size];
+for (int i = 0; i < size; i ++)
+{
+   for(int j = 0; j < size; j++) 
+   {
+      if(!IsBad)
+      { 
+          A[i][j] = 1;
+          A[i][i] = 2*i+N+2; // до 4 размерности включительно матрица с диагональным преобладанием      
+      }
+      else // A не обладает свойством диагонального преобладания 
+      {      
+          if(j<i)
+              A[i][j] = mu*N;
+          else if(j == i)
+              A[i][j] = 1 + mu*N;
+          else
+              A[i][j] = -1-mu*N;
+          B[i][j]=A[i][j];
+      }
+   }
+}
+cout << "matrix A:" << endl;
+for(int i = 0; i < size; i++)
+{
+   for(int j = 0; j < size; j++) 
+   {
+        cout << fixed;
+        cout << setprecision(4);
+      cout << A[i][j] << " "; 
+   }
+   cout << endl;
+}
+cout << "vector b:"<< endl <<" { ";
+for (int i = 0; i < size; i++)
+       {
+           x[i]=0;
+           b[i] = 2*i + N+4;
+           if(IsBad)
+           {
+              b[i] = -1;
+              if(i==size-1)
+                  b[i]=1+epsilon;
+           }
+       }
+   for (int i = 0; i < size; i++)
+   {
+       cout << fixed;
+       cout << setprecision(4);
+       cout << b[i] << " ";
+   }
+    cout << " }" << endl;
+if (gauss)
+{
+    for (int i = 0; i < size; i++)
+    {
+        double a = A[i][i];
+        b[i]/=a;
+        for (int j = i; j < size; j++) // мб с j = i
+        {
+            A[i][j]/=a; // теперь все коэффициенты в итой строке поделены на коэффициент при первом ненулевом 
+        }
+        for(int k = i+1; k < size; k++) // для строк, следующих после той, в которой делили 
+        {
+            b[k]-=b[i]*A[k][i];
+            for (int j = size-1; j >= i; j--) // мб с j = i 
+            {  
+                A[k][j] -= A[i][j]*A[k][i];
+            }
+        }
+    } // конец прямого хода 
+    for(int j = size-1; j>=1; j--)
+    {
+       for(int i=j-1; i >=0; i--) 
+       {
+           b[i] -= A[i][j]*b[j];
+       }
+    }// обратный ход завершен => в векторе б лежит решениe 
+}
+else 
+{ 
+    for(int i = 0; i < size; i++)
+    {
+        b[i] /= A[i][i];
+        double a = -A[i][i];
+        for(int j = 0; j<size; j++) 
+        {
+           A[i][j] /= a;
+        }
+        A[i][i] = 0;
+     }
+    double normaA = 0; // бесконечная норма 
+    for(int i = 0; i < size; i++)
+    {
+       for(int j = 0; j<size; j++) 
+       {
+           x[i]+=abs(A[i][j]);
+       }
+        if (i == 0)
+            normaA=x[0];
+        else if (x[i]>normaA)
+            normaA=x[i];
+    }
+    for (int i = 0; i < size; i++)
+    {
+        x[i]=0;
+        c[i]=b[i];
+    }
+    bool IsIn = false;
+    do 
+    {
+         if(IsIn)
+         {
+             for(int i = 0; i<size; i++)
+                 b[i] = x[i];
+         }
+         IsIn = true; 
+         for(int i = 0; i < size; i++)
+         {
+             x[i]=c[i];
+             for(int j = 0; j<size; j++) 
+                  x[i] +=A[i][j]*b[j];
+         }
+    } while (((abs((normaA*norm(x, b, size))/ (1-normaA)))) > pow(10, -4));
+    for (int i = 0; i < size; i++)
+        b[i]=x[i];
+}
+cout << "vector x:" << endl;
+for(int i = 0; i<size; i++)
+{
+    cout << fixed;
+    cout << setprecision(6);
+    cout << b[i]<<endl;
+}
+}
+int main() {
+bool IsBad = 0;
+bool gauss = 1;
+int size = 10; // max при органичении а время
+method(IsBad, gauss, size);
+cout << endl;
+method(IsBad, !gauss, size);
+cout << endl;
+method(!IsBad, gauss, size);
+cout << endl;
+method(!IsBad, !gauss, size);
+    return 0;
+}
