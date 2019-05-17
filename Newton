@@ -1,0 +1,23 @@
+#include <iostream>
+#include <cmath>
+using namespace std;
+double h (double x, double y)
+{
+   return ((2*y-cos(x+1))/(sin(x+1)*(cos(y)+x+sin(y)+0.4)-2));
+}
+double g (double x, double y)
+{
+   return (-x-sin(y)-0.4-cos(y)*h(x, y));
+}
+int main() {
+    double x0 = -1, y0 = 0.5;
+    while (pow(g(x0,y0), 2) + pow(h(x0,y0), 2) > pow(0.0001, 2))
+    {
+       double x = x0 + g(x0,y0);
+       double y = y0 + h(x0, y0);
+       x0 = x;
+       y0 = y;
+    }
+    cout << x0 << "  " << y0 << endl;
+    return 0;
+}
